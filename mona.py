@@ -20,7 +20,7 @@ st.markdown("""
     .st-text, .st-dataframe {
         color: #ffffff;
     }
-    /* Estilo das métricas */
+    /* Estilo dos métricas */
     .stMetric-label {
         color: #39ff14;
     }
@@ -118,8 +118,7 @@ if df is not None:
         st.subheader("Total por Plano de Contas (Agrupado por Mês/Ano)")
         st.dataframe(
             summary_pivot.style.format("{:,.2f}")
-            .background_gradient(cmap='viridis', axis=1)
-            .set_properties(**{'color': '#ffffff'})
+            .set_properties(**{'background-color': '#1a1a1a', 'color': '#ffffff'})
         )
 
     # --- Aba Dados ---
@@ -132,20 +131,24 @@ if df is not None:
 
     # --- Aba Gráficos ---
     with tab3:
-        # Gráfico de Receitas por Plano de Contas
-        st.subheader("Receitas por Plano de Contas")
+        # Gráfico de Receitas por Mês
+        st.subheader("Receitas por Mês")
         df_receitas = df_filtrado[df_filtrado['Valor'] > 0]
-        df_receitas_agrupado = df_receitas.groupby('Plano de contas')['Valor'].sum().reset_index()
+
+        # Criar a coluna Mês/Ano
+        df_receitas['Mês/Ano'] = df_receitas['Data'].dt.to_period('M')
+        df_receitas_agrupado = df_receitas.groupby('Mês/Ano')['Valor'].sum().reset_index()
+        df_receitas_agrupado['Mês/Ano'] = df_receitas_agrupado['Mês/Ano'].astype(str)
+
         if not df_receitas_agrupado.empty:
             fig_receitas = px.bar(
                 df_receitas_agrupado,
-                x='Plano de contas',
+                x='Mês/Ano',
                 y='Valor',
-                color='Plano de contas',
-                title='Receitas por Plano de Contas',
-                labels={'Valor': 'Valor (R$)'},
+                title='Receitas por Mês',
+                labels={'Valor': 'Valor (R$)', 'Mês/Ano': 'Mês/Ano'},
                 template='plotly_dark',
-                color_discrete_sequence=px.colors.qualitative.Prism
+                color_discrete_sequence=['#39ff14']
             )
             fig_receitas.update_layout(
                 xaxis_tickangle=-45,
