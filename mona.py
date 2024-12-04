@@ -72,6 +72,9 @@ if df is not None:
     # Tratamento de dados (formatação de datas)
     df['Data'] = pd.to_datetime(df['Data'], dayfirst=True, errors='coerce')
 
+    # Criar coluna de Mês/Ano para filtros e agrupamentos
+    df['Mês/Ano'] = df['Data'].dt.to_period('M').dt.to_timestamp()
+
     # Filtro por Conta Bancária
     if 'Conta bancária' in df.columns:
         contas_bancarias = df['Conta bancária'].unique()
@@ -85,6 +88,16 @@ if df is not None:
     else:
         st.sidebar.error("A coluna 'Conta bancária' não foi encontrada no arquivo.")
         df_filtrado = df
+
+    # Filtro por Mês
+    meses_disponiveis = df['Mês/Ano'].dt.strftime('%b %Y').unique()
+    meses_selecionados = st.sidebar.multiselect("🗓️ Filtrar por Mês:", options=meses_disponiveis, default=meses_disponiveis)
+
+    # Converter meses selecionados para datetime para filtrar
+    meses_selecionados_dt = pd.to_datetime(meses_selecionados, format='%b %Y')
+
+    # Aplicar filtro de mês
+    df_filtrado = df_filtrado[df_filtrado['Mês/Ano'].isin(meses_selecionados_dt)]
 
     # Filtro por Plano de Contas
     filtro_plano_contas = st.sidebar.text_input("🔍 Filtrar Plano de Contas:")
@@ -110,10 +123,12 @@ if df is not None:
         col2.metric("Total Despesas 💸", f"R$ {abs(total_despesas):,.2f}")
 
         # Resumo por plano de contas agrupado por Mês/Ano
-        df_filtrado['Mês/Ano'] = df_filtrado['Data'].dt.to_period('M')
         summary = df_filtrado.groupby(['Plano de contas', 'Mês/Ano'])['Valor'].sum().reset_index()
         summary_pivot = summary.pivot(index='Plano de contas', columns='Mês/Ano', values='Valor').fillna(0)
         summary_pivot['Total'] = summary_pivot.sum(axis=1)
+
+        # Ordenar as colunas de Mês/Ano
+        summary_pivot = summary_pivot.sort_index(axis=1)
 
         st.subheader("Total por Plano de Contas (Agrupado por Mês/Ano)")
         st.dataframe(
@@ -135,12 +150,9 @@ if df is not None:
         st.subheader("Receitas por Mês")
         df_receitas = df_filtrado[df_filtrado['Valor'] > 0]
 
-        # Criar a coluna Mês/Ano
-        df_receitas['Mês/Ano'] = df_receitas['Data'].dt.to_period('M').dt.to_timestamp()
+        # Agrupar e ordenar os dados
         df_receitas_agrupado = df_receitas.groupby('Mês/Ano')['Valor'].sum().reset_index()
-
-        # Formatando a coluna 'Mês/Ano' para exibir o mês e ano de forma legível
-        df_receitas_agrupado['Mês/Ano'] = df_receitas_agrupado['Mês/Ano'].dt.strftime('%b %Y')
+        df_receitas_agrupado = df_receitas_agrupado.sort_values('Mês/Ano')
 
         if not df_receitas_agrupado.empty:
             fig_receitas = px.bar(
@@ -156,7 +168,7 @@ if df is not None:
                 xaxis_tickangle=-45,
                 xaxis_title='Mês/Ano',
                 yaxis_title='Valor (R$)',
-                xaxis={'categoryorder':'category ascending'},
+                xaxis_tickformat='%b\n%Y',
                 showlegend=False,
                 plot_bgcolor='rgba(0,0,0,0)',
                 paper_bgcolor='rgba(0,0,0,0)',
