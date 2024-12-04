@@ -1,13 +1,18 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from io import BytesIO  # Import necessário para exportar em XLSX
 
 # Configuração inicial da página do Streamlit
 st.set_page_config(page_title="Dashboard Financeiro Neon", layout="wide")
 
-# Função para converter DataFrame para CSV
-def convert_df(df):
-    return df.to_csv(index=False).encode('utf-8')
+# Função para converter DataFrame para Excel em memória
+def convert_df_to_excel(df):
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False)
+    processed_data = output.getvalue()
+    return processed_data
 
 # --- Estilos CSS Personalizados ---
 st.markdown("""
@@ -210,22 +215,22 @@ if df is not None:
     # --- Aba Exportação ---
     with tab4:
         st.subheader("Exportar Resumo")
-        csv_data = convert_df(summary_pivot.reset_index())
+        excel_data = convert_df_to_excel(summary_pivot.reset_index())
         st.download_button(
-            label="💾 Exportar Resumo para CSV",
-            data=csv_data,
-            file_name='Resumo_Plano_De_Contas.csv',
-            mime='text/csv'
+            label="💾 Exportar Resumo para Excel",
+            data=excel_data,
+            file_name='Resumo_Plano_De_Contas.xlsx',
+            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
 
         # Opção para exportar os dados filtrados
         st.subheader("Exportar Dados Filtrados")
-        csv_dados_filtrados = convert_df(df_filtrado)
+        excel_dados_filtrados = convert_df_to_excel(df_filtrado)
         st.download_button(
-            label="💾 Exportar Dados Filtrados para CSV",
-            data=csv_dados_filtrados,
-            file_name='Dados_Filtrados.csv',
-            mime='text/csv'
+            label="💾 Exportar Dados Filtrados para Excel",
+            data=excel_dados_filtrados,
+            file_name='Dados_Filtrados.xlsx',
+            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
 
 else:
