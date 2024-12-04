@@ -127,17 +127,23 @@ if df is not None:
         st.subheader("Receitas por Mês")
         df_receitas = df_filtrado[df_filtrado['Valor'] > 0]
 
-        # Agrupar e ordenar os dados
-        df_receitas_agrupado = df_receitas.groupby('Mês/Ano')['Valor'].sum().reset_index()
-        df_receitas_agrupado = df_receitas_agrupado.sort_values('Mês/Ano')
+        # Criar a coluna Mês/Ano formatada como string
+        df_receitas['Mês/Ano Str'] = df_receitas['Mês/Ano'].dt.strftime('%b %Y')
+
+        # Agrupar os dados
+        df_receitas_agrupado = df_receitas.groupby('Mês/Ano Str')['Valor'].sum().reset_index()
+
+        # Ordenar os dados
+        df_receitas_agrupado['Data'] = pd.to_datetime(df_receitas_agrupado['Mês/Ano Str'], format='%b %Y')
+        df_receitas_agrupado = df_receitas_agrupado.sort_values('Data')
 
         if not df_receitas_agrupado.empty:
             fig_receitas = px.bar(
                 df_receitas_agrupado,
-                x='Mês/Ano',
+                x='Mês/Ano Str',
                 y='Valor',
                 title='Receitas por Mês',
-                labels={'Valor': 'Valor (R$)', 'Mês/Ano': 'Mês/Ano'},
+                labels={'Valor': 'Valor (R$)', 'Mês/Ano Str': 'Mês/Ano'},
                 template='plotly_dark',
                 color_discrete_sequence=['#39ff14']
             )
@@ -145,7 +151,6 @@ if df is not None:
                 xaxis_tickangle=-45,
                 xaxis_title='Mês/Ano',
                 yaxis_title='Valor (R$)',
-                xaxis_tickformat='%b\n%Y',
                 showlegend=False,
                 plot_bgcolor='rgba(0,0,0,0)',
                 paper_bgcolor='rgba(0,0,0,0)',
