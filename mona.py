@@ -20,7 +20,7 @@ st.markdown("""
     .st-text, .st-dataframe {
         color: #ffffff;
     }
-    /* Estilo dos métricas */
+    /* Estilo das métricas */
     .stMetric-label {
         color: #39ff14;
     }
@@ -136,9 +136,11 @@ if df is not None:
         df_receitas = df_filtrado[df_filtrado['Valor'] > 0]
 
         # Criar a coluna Mês/Ano
-        df_receitas['Mês/Ano'] = df_receitas['Data'].dt.to_period('M')
+        df_receitas['Mês/Ano'] = df_receitas['Data'].dt.to_period('M').dt.to_timestamp()
         df_receitas_agrupado = df_receitas.groupby('Mês/Ano')['Valor'].sum().reset_index()
-        df_receitas_agrupado['Mês/Ano'] = df_receitas_agrupado['Mês/Ano'].astype(str)
+
+        # Formatando a coluna 'Mês/Ano' para exibir o mês e ano de forma legível
+        df_receitas_agrupado['Mês/Ano'] = df_receitas_agrupado['Mês/Ano'].dt.strftime('%b %Y')
 
         if not df_receitas_agrupado.empty:
             fig_receitas = px.bar(
@@ -152,6 +154,9 @@ if df is not None:
             )
             fig_receitas.update_layout(
                 xaxis_tickangle=-45,
+                xaxis_title='Mês/Ano',
+                yaxis_title='Valor (R$)',
+                xaxis={'categoryorder':'category ascending'},
                 showlegend=False,
                 plot_bgcolor='rgba(0,0,0,0)',
                 paper_bgcolor='rgba(0,0,0,0)',
