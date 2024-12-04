@@ -12,40 +12,7 @@ def convert_df(df):
 # --- Estilos CSS Personalizados ---
 st.markdown("""
     <style>
-    /* Estilo dos títulos */
-    h1, h2, h3, h4, h5, h6 {
-        color: #39ff14;
-    }
-    /* Estilo dos textos */
-    .st-text, .st-dataframe {
-        color: #ffffff;
-    }
-    /* Estilo das métricas */
-    .stMetric-label {
-        color: #39ff14;
-    }
-    .stMetric-value {
-        color: #39ff14;
-    }
-    /* Estilo dos botões */
-    .stButton>button {
-        background-color: #39ff14;
-        color: #000000;
-    }
-    /* Estilo dos elementos da barra lateral */
-    .sidebar .sidebar-content {
-        background-color: #1a1a1a;
-    }
-    /* Estilo dos inputs */
-    .stTextInput>div>div>input {
-        background-color: #333333;
-        color: #ffffff;
-    }
-    /* Estilo dos selectboxes */
-    .stSelectbox>div>div>div>select {
-        background-color: #333333;
-        color: #ffffff;
-    }
+    /* Seu CSS personalizado */
     </style>
 """, unsafe_allow_html=True)
 
@@ -127,8 +94,18 @@ if df is not None:
         summary_pivot = summary.pivot(index='Plano de contas', columns='Mês/Ano', values='Valor').fillna(0)
         summary_pivot['Total'] = summary_pivot.sum(axis=1)
 
+        # Converter nomes das colunas para strings
+        summary_pivot.columns = summary_pivot.columns.map(str)
+
+        # Separar a coluna "Total" para manter no final
+        total_column = summary_pivot['Total']
+        summary_pivot = summary_pivot.drop('Total', axis=1)
+
         # Ordenar as colunas de Mês/Ano
         summary_pivot = summary_pivot.sort_index(axis=1)
+
+        # Reinsere a coluna "Total" no final
+        summary_pivot['Total'] = total_column
 
         st.subheader("Total por Plano de Contas (Agrupado por Mês/Ano)")
         st.dataframe(
