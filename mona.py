@@ -1,15 +1,15 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from io import BytesIO  # Import necessário para exportar em XLSX
+from io import BytesIO  # Necessário para exportar em XLSX
 
 # Configuração inicial da página do Streamlit
 st.set_page_config(page_title="Dashboard Financeiro Neon", layout="wide")
 
-# Função para converter DataFrame para Excel em memória
+# Função para converter DataFrame para Excel em memória usando openpyxl
 def convert_df_to_excel(df):
     output = BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False)
     processed_data = output.getvalue()
     return processed_data
@@ -17,7 +17,40 @@ def convert_df_to_excel(df):
 # --- Estilos CSS Personalizados ---
 st.markdown("""
     <style>
-    /* Seu CSS personalizado */
+    /* Estilo dos títulos */
+    h1, h2, h3, h4, h5, h6 {
+        color: #39ff14;
+    }
+    /* Estilo dos textos */
+    .st-text, .st-dataframe {
+        color: #ffffff;
+    }
+    /* Estilo das métricas */
+    .stMetric-label {
+        color: #39ff14;
+    }
+    .stMetric-value {
+        color: #39ff14;
+    }
+    /* Estilo dos botões */
+    .stButton>button {
+        background-color: #39ff14;
+        color: #000000;
+    }
+    /* Estilo dos elementos da barra lateral */
+    .sidebar .sidebar-content {
+        background-color: #1a1a1a;
+    }
+    /* Estilo dos inputs */
+    .stTextInput>div>div>input {
+        background-color: #333333;
+        color: #ffffff;
+    }
+    /* Estilo dos selectboxes */
+    .stSelectbox>div>div>div>select {
+        background-color: #333333;
+        color: #ffffff;
+    }
     </style>
 """, unsafe_allow_html=True)
 
